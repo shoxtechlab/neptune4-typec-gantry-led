@@ -2,7 +2,7 @@
 
 ELEGOO Neptune 4 Plus **Type-C版**の上部ガントリーLEDを、FluiddまたはMobilerakerからON/OFFするための実機検証記録です。
 
-従来知られている `gpio66` 単独制御では、この個体では一瞬だけ点灯してすぐ消えました。本体タッチパネルの操作を監視した結果、Type-C版では2本のGPIOと2つのMakerbase制御ファイルを同期させていることが分かりました。
+2つの制御ファイルを同時操作する方法自体は、Neptune 4 ProやMax向けに先行事例があります。本記事は新規発明を主張するものではなく、現行Neptune 4 Plus Type-C版での追試、既存情報の組合せ、および追加の実測結果をまとめたものです。
 
 > [English version](README.md)
 
@@ -16,6 +16,22 @@ ELEGOO Neptune 4 Plus **Type-C版**の上部ガントリーLEDを、Fluiddまた
 - 検証日：2026-11-09
 
 旧リボンケーブル版、Neptune 4/4 Pro、Neptune 4 Maxでは未検証です。
+
+## 先行事例と今回の範囲
+
+次のコミュニティ情報が先に公開されています。
+
+- [2024年3月のドイツ語フォーラム投稿](https://forum.drucktipps3d.de/forum/thread/30746-elegoo-neptune-4-pro-lichter-direkt-beim-starten-aktivieren/?pageNo=2)：Neptune 4 Proで `gpio66_value` と `gpio79_value` の両方を操作
+- [`Tsoukan/MyElegooN4Max`](https://github.com/Tsoukan/MyElegooN4Max)：Neptune 4 Max向けの関連LED制御スクリプト
+- [2026年のType-C版に関するReddit投稿](https://www.reddit.com/r/ElegooNeptune4/comments/1ue955n/neptune_4_max_observation_light_control/)：最近の個体で欠けている `gcode_shell_command.py` とKIAUH拡張による復旧
+
+今回追加で実機確認した範囲は次のとおりです。
+
+- Neptune 4 Plus Type-C版の本体・液晶ファームウェアを特定
+- GPIO 66だけを操作すると一瞬光って消える現象
+- 純正画面操作時にGPIO 66/79が同時遷移すること
+- Makerbase制御ファイルの応答値 `2=OFF / 3=ON`
+- FluiddとMobilerakerから使える単一トグルスクリプト
 
 ## 症状
 
@@ -95,6 +111,7 @@ cp -p /home/mks/sled2.sh.backup /home/mks/sled2.sh
 - ファームウェア更新で `sled2.sh` が上書きされたり、制御方式が変わったりする可能性があります。
 - 別の基板・ファームウェア世代ではGPIO番号や挙動が異なる可能性があります。
 - 初期SSH認証情報などは、本記事では意図的に掲載していません。
+- 2ファイル同時制御という着想のクレジットは、上記の先行コミュニティ情報にあります。本記事はType-C版Plusでの検証・補完です。
 
 ## ライセンス
 

@@ -2,7 +2,7 @@
 
 Control the upper gantry LED of an **ELEGOO Neptune 4 Plus Type-C** from Fluidd or Mobileraker.
 
-On the tested Type-C firmware, the commonly documented `gpio66`-only method produces only a brief flash. Observing the stock touchscreen revealed that its upper-light operation drives both Linux GPIO lines and both Makerbase command files together.
+This repository does not claim the dual-command-file technique as a new invention. Similar methods were previously shared for the Neptune 4 Pro and Max. This is a reproducible test and adaptation for a current Neptune 4 Plus Type-C, including behavior not documented in those earlier guides.
 
 > [日本語版はこちら](README.ja.md)
 
@@ -15,6 +15,22 @@ On the tested Type-C firmware, the commonly documented `gpio66`-only method prod
 - Date tested: 2026-11-09
 
 This has **not** been tested on the older ribbon-cable version, Neptune 4/4 Pro, or Neptune 4 Max.
+
+## Prior art and scope of this test
+
+Earlier community work established the important foundations:
+
+- A [March 2024 German forum post](https://forum.drucktipps3d.de/forum/thread/30746-elegoo-neptune-4-pro-lichter-direkt-beim-starten-aktivieren/?pageNo=2) switches both `/home/mks/gpio66_value` and `/home/mks/gpio79_value` for a Neptune 4 Pro.
+- The [`Tsoukan/MyElegooN4Max`](https://github.com/Tsoukan/MyElegooN4Max) repository contains related light-control scripts for a Neptune 4 Max.
+- A [2026 Type-C discussion](https://www.reddit.com/r/ElegooNeptune4/comments/1ue955n/neptune_4_max_observation_light_control/) documents the missing `gcode_shell_command.py` problem and the KIAUH extension fix on recent hardware.
+
+This repository adds a tested Neptune 4 Plus Type-C combination and records the following observations:
+
+- exact main/UI firmware versions;
+- the brief-flash failure when only GPIO 66 is driven;
+- touchscreen-observed simultaneous GPIO 66/79 transitions;
+- the Makerbase acknowledgement states `2` (off) and `3` (on);
+- a single toggle script tested through Fluidd and Mobileraker.
 
 ## What was observed
 
@@ -83,6 +99,7 @@ Then restart Klipper. This procedure does not flash the mainboard MCU or touchsc
 - Treat shell-command macros as privileged functionality. Only configure fixed commands; do not pass arbitrary user input to a shell.
 - Firmware updates may overwrite `/home/mks/sled2.sh` or change the command-file protocol.
 - GPIO assignments and behavior may differ on other hardware revisions.
+- Credit for the dual-file control concept belongs to the earlier community work linked above. This repository is a Type-C Plus validation and adaptation.
 
 ## License
 

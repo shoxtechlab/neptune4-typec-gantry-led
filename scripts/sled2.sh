@@ -1,17 +1,15 @@
 #!/bin/sh
 set -eu
 
-gantry_state=$(cat /home/mks/gpio66_value)
+gantry_state=$(cat /home/mks/gpio79_value)
 
 case "$gantry_state" in
   2)
-    # Request ON through both Makerbase control files.
+    # GPIO 79 is the effective control input on the tested Type-C revision.
     printf '1\n' > /home/mks/gpio79_value
-    printf '1\n' > /home/mks/gpio66_value
     ;;
   3)
-    # Request OFF through both Makerbase control files.
-    printf '0\n' > /home/mks/gpio66_value
+    # GPIO 79 drives both physical GPIO outputs on this revision.
     printf '0\n' > /home/mks/gpio79_value
     ;;
   *)

@@ -2,7 +2,7 @@
 
 Control the upper gantry LED of an **ELEGOO Neptune 4 Plus Type-C** from Fluidd or Mobileraker.
 
-This repository does not claim the dual-command-file technique as a new invention. Similar methods were previously shared for the Neptune 4 Pro and Max. This is a reproducible test and adaptation for a current Neptune 4 Plus Type-C, including behavior not documented in those earlier guides.
+Earlier Neptune 4 Pro and Max guides control GPIO 66, or GPIO 66 and 79 together. This repository does not claim those techniques as new. It tests each stock control path independently on a current Neptune 4 Plus Type-C and records that GPIO 79 is the effective control input on this hardware revision.
 
 > [日本語版はこちら](README.ja.md)
 
@@ -31,7 +31,7 @@ The following was verified on the updated printer:
 - the `FLASHLIGHT_SWITCH` and `MODLELIGHT_SWITCH` macros remained in `printer.cfg`;
 - `/home/mks/klipper/klippy/extras/gcode_shell_command.py` also remained installed;
 - however, the `[gcode_shell_command FLASHLIGHT]` and `[gcode_shell_command MODLELIGHT]` sections referenced by those macros were gone;
-- after recovery, the GPIO acknowledgement states remained `3 / 3 = ON` and `2 / 2 = OFF`, matching `V1.4.1.4`.
+- after recovery, a GPIO 79 ON request was acknowledged as `gpio79_value=3` and both physical GPIO 66/79 went high, matching `V1.4.1.4`.
 
 In this specific state, Klipper and the extension do not need to be reinstalled. Restore the missing definitions in `printer.cfg` **before the auto-generated save block**:
 
@@ -57,32 +57,36 @@ Back up `printer.cfg` before editing it. After restarting Klipper, confirm that 
 Earlier community work established the important foundations:
 
 - A [March 2024 German forum post](https://forum.drucktipps3d.de/forum/thread/30746-elegoo-neptune-4-pro-lichter-direkt-beim-starten-aktivieren/?pageNo=2) switches both `/home/mks/gpio66_value` and `/home/mks/gpio79_value` for a Neptune 4 Pro.
-- The [`Tsoukan/MyElegooN4Max`](https://github.com/Tsoukan/MyElegooN4Max) repository contains related light-control scripts for a Neptune 4 Max.
+- The [`Tsoukan/MyElegooN4Max`](https://github.com/Tsoukan/MyElegooN4Max) repository turns on a Neptune 4 Max overhead LED through `/home/mks/gpio66_value`.
 - A [2026 Type-C discussion](https://www.reddit.com/r/ElegooNeptune4/comments/1ue955n/neptune_4_max_observation_light_control/) documents the missing `gcode_shell_command.py` problem and the KIAUH extension fix on recent hardware.
 
 This repository adds a tested Neptune 4 Plus Type-C combination and records the following observations:
 
 - exact main/UI firmware versions;
-- the brief-flash failure when only GPIO 66 is driven;
-- touchscreen-observed simultaneous GPIO 66/79 transitions;
+- separate tests of the stock `sled1.sh` (GPIO 79) and `sled2.sh` (GPIO 66) paths;
+- both physical GPIO 66 and 79 going high from a GPIO 79 request alone;
+- a GPIO 66 request being acknowledged without either physical GPIO going high;
 - the Makerbase acknowledgement states `2` (off) and `3` (on);
 - a single toggle script tested through Fluidd and Mobileraker.
 
 ## What was observed
 
-The stock touchscreen was monitored while switching the upper light on and off:
+The stock scripts were run separately from an initially off state while both Makerbase request files and physical GPIO values were monitored:
 
-| Operation | `/home/mks/gpio66_value` | `/home/mks/gpio79_value` | GPIO 66 | GPIO 79 |
-|---|---:|---:|---:|---:|
-| Off | `2` | `2` | `0` | `0` |
-| On | `3` | `3` | `1` | `1` |
+| Operation | `gpio66_value` | `gpio79_value` | Physical GPIO 66 | Physical GPIO 79 | Upper LED |
+|---|---:|---:|---:|---:|---|
+| Initially off | `2` | `2` | `0` | `0` | Off |
+| Stock `sled1.sh` (79) | `2` | `3` | `1` | `1` | On |
+| Stock `sled2.sh` (66) | `3` | `2` | `0` | `0` | Off |
 
-Writing to GPIO 66 alone caused a short flash and immediately returned low. Sending the ON/OFF request through **both** Makerbase command files reproduced the touchscreen behavior and held the state.
+On this Type-C revision, the stock `sled2.sh` path acknowledges a GPIO 66 request but does not hold either physical GPIO high. The stock `sled1.sh` path sends a GPIO 79 request and causes both physical GPIO 66 and 79 to change together, holding the upper LED state. The stock macro names and descriptions therefore do not match the effective control path on this hardware.
 
 The command-file protocol observed on this machine was:
 
 - write `1` to request ON; the stock service acknowledges it as `3`
 - write `0` to request OFF; the stock service acknowledges it as `2`
+
+Because a GPIO 79 request alone drives both physical outputs, the toggle script in this repository writes only to `gpio79_value`. It retains the `sled2.sh` filename so the existing `FLASHLIGHT_SWITCH` macro can be kept. The stock `MODLELIGHT_SWITCH` also uses GPIO 79, so both macros produce the same upper-light behavior on this Type-C printer.
 
 ## Installation
 
@@ -133,9 +137,10 @@ Then restart Klipper. This procedure does not flash the mainboard MCU or touchsc
 ## Notes
 
 - Treat shell-command macros as privileged functionality. Only configure fixed commands; do not pass arbitrary user input to a shell.
+- On this Type-C revision, `FLASHLIGHT_SWITCH` and `MODLELIGHT_SWITCH` effectively toggle the same light; they do not operate as two independent channels.
 - Firmware updates may overwrite `/home/mks/sled2.sh` or change the command-file protocol.
 - GPIO assignments and behavior may differ on other hardware revisions.
-- Credit for the dual-file control concept belongs to the earlier community work linked above. This repository is a Type-C Plus validation and adaptation.
+- Credit for the earlier GPIO 66 and dual-file approaches belongs to the community work linked above. This repository records the independently tested control paths on a Type-C Plus.
 
 ## License
 

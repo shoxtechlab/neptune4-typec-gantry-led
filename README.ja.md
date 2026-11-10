@@ -15,7 +15,43 @@ ELEGOO Neptune 4 Plus **Type-C版**の上部ガントリーLEDを、Fluiddまた
 - 操作UI：Fluidd / Mobileraker
 - 検証日：2026-11-09
 
+追加検証：本体ファームウェア `V1.4.1.5`（2026-11-10）
+
 旧リボンケーブル版、Neptune 4/4 Pro、Neptune 4 Maxでは未検証です。
+
+## V1.4.1.5へ更新した場合
+
+同じ実機を`V1.4.1.4`から`V1.4.1.5`へ更新したところ、Fluiddから`FLASHLIGHT_SWITCH`を実行しても点灯せず、次のエラーになりました。
+
+```text
+Unknown command:"RUN_SHELL_COMMAND"
+```
+
+更新後の実機では、次の状態を確認しました。
+
+- `FLASHLIGHT_SWITCH`と`MODLELIGHT_SWITCH`マクロは`printer.cfg`に残っていた
+- `/home/mks/klipper/klippy/extras/gcode_shell_command.py`も残っていた
+- 一方、マクロが参照する`[gcode_shell_command FLASHLIGHT]`と`[gcode_shell_command MODLELIGHT]`セクションが消えていた
+- 修復後も、GPIOの応答値は`3 / 3 = ON`、`2 / 2 = OFF`で、`V1.4.1.4`と同じだった
+
+この状態ならKlipper全体や拡張ファイルを再インストールする必要はありません。`printer.cfg`の**自動保存ブロックより前**に、消えた定義を戻します。
+
+```ini
+[gcode_shell_command FLASHLIGHT]
+command: sh /home/mks/sled2.sh
+timeout: 5.
+verbose: True
+
+[gcode_shell_command MODLELIGHT]
+command: sh /home/mks/sled1.sh
+timeout: 5.
+verbose: True
+```
+
+> [!CAUTION]
+> 追加位置は`#*# <---------------------- SAVE_CONFIG ---------------------->`より前にしてください。このブロックより後ろへ通常設定を追記すると、自動保存されたPID値やベッドメッシュが読み込まれず、Klipperが起動エラーになったり、保存済みメッシュをロードできなくなったりします。
+
+変更前に`printer.cfg`をバックアップし、Klipper再起動後に状態が`ready`であること、使用するベッドメッシュが存在することを確認してください。その後`FLASHLIGHT_SWITCH`を2回実行し、点灯と消灯の両方を確認します。
 
 ## 先行事例と今回の範囲
 

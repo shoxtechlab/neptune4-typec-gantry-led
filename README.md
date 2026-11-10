@@ -14,7 +14,43 @@ This repository does not claim the dual-command-file technique as a new inventio
 - Klipper frontend: Fluidd / Mobileraker
 - Date tested: 2026-11-09
 
+Additional test: main firmware `V1.4.1.5` (2026-11-10)
+
 This has **not** been tested on the older ribbon-cable version, Neptune 4/4 Pro, or Neptune 4 Max.
+
+## After updating to V1.4.1.5
+
+After updating the same printer from `V1.4.1.4` to `V1.4.1.5`, running `FLASHLIGHT_SWITCH` from Fluidd no longer switched the light and returned:
+
+```text
+Unknown command:"RUN_SHELL_COMMAND"
+```
+
+The following was verified on the updated printer:
+
+- the `FLASHLIGHT_SWITCH` and `MODLELIGHT_SWITCH` macros remained in `printer.cfg`;
+- `/home/mks/klipper/klippy/extras/gcode_shell_command.py` also remained installed;
+- however, the `[gcode_shell_command FLASHLIGHT]` and `[gcode_shell_command MODLELIGHT]` sections referenced by those macros were gone;
+- after recovery, the GPIO acknowledgement states remained `3 / 3 = ON` and `2 / 2 = OFF`, matching `V1.4.1.4`.
+
+In this specific state, Klipper and the extension do not need to be reinstalled. Restore the missing definitions in `printer.cfg` **before the auto-generated save block**:
+
+```ini
+[gcode_shell_command FLASHLIGHT]
+command: sh /home/mks/sled2.sh
+timeout: 5.
+verbose: True
+
+[gcode_shell_command MODLELIGHT]
+command: sh /home/mks/sled1.sh
+timeout: 5.
+verbose: True
+```
+
+> [!CAUTION]
+> Place these sections before `#*# <---------------------- SAVE_CONFIG ---------------------->`. Appending normal configuration after that block can prevent saved PID values and bed meshes from loading, resulting in a Klipper startup error or a missing mesh profile.
+
+Back up `printer.cfg` before editing it. After restarting Klipper, confirm that its state is `ready` and that the required bed mesh still exists. Then run `FLASHLIGHT_SWITCH` twice to verify both ON and OFF operation.
 
 ## Prior art and scope of this test
 

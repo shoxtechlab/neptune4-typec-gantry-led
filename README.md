@@ -87,6 +87,28 @@ GANTRY_LED_TOGGLE
 
 The stock name `FLASHLIGHT_SWITCH` can be kept instead if preferred.
 
+### 5. Add explicit ON/OFF commands and print integration (optional)
+
+For remote operation, explicit ON/OFF commands are safer than a toggle whose result depends on the current state. Copy [`scripts/gantry-led-on.sh`](scripts/gantry-led-on.sh) and [`scripts/gantry-led-off.sh`](scripts/gantry-led-off.sh) to `/home/mks/`, then make them executable:
+
+```sh
+chmod 755 /home/mks/gantry-led-on.sh /home/mks/gantry-led-off.sh
+```
+
+Copy [`config/gantry-led-control.cfg`](config/gantry-led-control.cfg) to `~/printer_data/config/`, then add this line to the normal configuration area of `printer.cfg`:
+
+```ini
+[include gantry-led-control.cfg]
+```
+
+This provides `GANTRY_LED_ON` and `GANTRY_LED_OFF` in Fluidd and Mobileraker. To turn the light on only while printing, add one command to each existing stock macro:
+
+- at the start of `PRINT_START`: `GANTRY_LED_ON`
+- after heater and fan shutdown in `PRINT_END`: `GANTRY_LED_OFF`
+- after heater and fan shutdown in `CANCEL_PRINT`: `GANTRY_LED_OFF`
+
+Add these commands inside the existing macros; do not replace `PRINT_START`, `PRINT_END`, or `CANCEL_PRINT` with duplicate definitions. Restart Klipper afterward and confirm that its state is `ready`.
+
 ## Recovery
 
 If Klipper reports a configuration error, restore the backup:

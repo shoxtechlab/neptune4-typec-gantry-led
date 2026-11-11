@@ -98,6 +98,29 @@ GANTRY_LED_TOGGLE
 
 既存の `FLASHLIGHT_SWITCH` というマクロ名をそのまま利用しても構いません。
 
+### 5. 明示的なON/OFFと印刷への連動（任意）
+
+遠隔操作では現在状態に依存するトグルより、ON/OFFを明示する方が安全です。
+[`scripts/gantry-led-on.sh`](scripts/gantry-led-on.sh)と[`scripts/gantry-led-off.sh`](scripts/gantry-led-off.sh)を`/home/mks/`へコピーし、実行権限を設定します。
+
+```sh
+chmod 755 /home/mks/gantry-led-on.sh /home/mks/gantry-led-off.sh
+```
+
+[`config/gantry-led-control.cfg`](config/gantry-led-control.cfg)を`~/printer_data/config/`へコピーし、`printer.cfg`の通常設定部分に次を追加します。
+
+```ini
+[include gantry-led-control.cfg]
+```
+
+これによりFluiddとMobilerakerから`GANTRY_LED_ON`と`GANTRY_LED_OFF`を直接実行できます。印刷中だけ自動点灯する場合は、既存の各マクロへ次の1行を追加します。
+
+- `PRINT_START`の先頭：`GANTRY_LED_ON`
+- `PRINT_END`のヒーター・ファン停止後：`GANTRY_LED_OFF`
+- `CANCEL_PRINT`のヒーター・ファン停止後：`GANTRY_LED_OFF`
+
+既存の`PRINT_START`、`PRINT_END`、`CANCEL_PRINT`を別定義で置き換えず、純正マクロの処理内へ1行ずつ追加してください。変更後はKlipperを再起動し、状態が`ready`であることを確認します。
+
 ## 元に戻す方法
 
 Klipperが設定エラーになった場合はバックアップを戻します。
